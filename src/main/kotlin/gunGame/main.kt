@@ -20,15 +20,13 @@ import gunGame.weapons.impl.loadFun
 import gunGame.weapons.impl.loadPrimaries
 import gunGame.weapons.impl.loadSecondaries
 import internal.versionManagement.Version
-import lib.applyNbtToHeldItem
-import lib.copyItemfromSlotAndRun
+import lib.Delta
 import lib.debug.Debug
 import lib.debug.Log
-import lib.random.Random
 import structure.*
 import utils.*
 
-val dp = Datapack("Gun Game Experimental", "jh1236", Version.VERSION_1_19)
+val dp = Datapack("Gun Game Experimental", "jh1236", Version.VERSION_1_21, 2)
 val self = Selector('s')
 val allGear = McFunction("all_gear")
 val lagTag = PlayerTag("lag")
@@ -46,14 +44,14 @@ val secondary4 = Fluorite.getNewFakeScore("secondary4")
 
 
 fun main() {
-//    If.setIf(Ifv2)
+    Debug.debugMode = false
     ExternalFile(
         "G:/Programming/kotlin/GunGame/src/main/resources/air.json",
-        "data/jh1236/tags/blocks/air.json"
+        "data/jh1236/tags/block/air.json"
     )
     ExternalFile(
         "G:/Programming/kotlin/GunGame/src/main/resources/sneaking.json",
-        "data/jh1236/predicates/sneaking.json"
+        "data/jh1236/predicate/sneaking.json"
     )
     ExternalFile(
         "G:/Programming/kotlin/GunGame/src/main/resources/damage.json",
@@ -63,13 +61,11 @@ fun main() {
 
     Log.logLevel = Log.TRACE
     If.setIf(Ifv2)
-    Debug.debugMode = true
     addDebug()
 
     Fluorite.tickFile += ::coolDownTick
     Fluorite.tickFile += ::ammoDisplayTick
-    Fluorite.tickFile += ::mcMain
-    Fluorite.loadFile += ::mcLoad
+
     coasSetup()
     coolDownSetup()
 
@@ -78,6 +74,8 @@ fun main() {
     loadFun()
     loadExperiments()
     spawnSetup()
+    Fluorite.tickFile += ::mcMain
+    Fluorite.loadFile += ::mcLoad
     Fluorite.tickFile += ::healthTick
 
     McFunction("jh1236:other/dummy") {
@@ -157,7 +155,14 @@ fun main() {
         Sleep(Duration(5))
         Command.effect().clear(self, Effects.LEVITATION)
     }
-
+    McFunction("jh1236:other/jump/massive") {
+        Command.effect().give(self, Effects.LEVITATION, 1, 70)
+        Sleep(Duration(5))
+        Command.effect().clear(self, Effects.LEVITATION)
+    }
+    McFunction("jh1236:other/jump/launch") {
+        Delta.launchFacing(2.0)
+    }
 
     Trigger("map", 'a'[""]) {
         respawnFunc()
@@ -179,28 +184,29 @@ fun main() {
         val secondaryCount = AbstractWeapon.allWeapons.stream().filter { it.secondary && !it.isReward }.count().toInt()
 
 
-        primary1.set(Random.next(primaryCount))
-        primary2.set(Random.next(primaryCount-1))
+
+        primary1.set { Command.random().value(0..primaryCount) }
+        primary2.set { Command.random().value(0..primaryCount - 1) }
         If(primary2 gte primary1) {
             primary2 += 1
         }
-        If (primary2 lt primary1) {
+        If(primary2 lt primary1) {
             primary2.swap(primary1)
         }
-        primary3.set(Random.next(primaryCount-2))
+        primary3.set { Command.random().value(0..primaryCount - 2) }
         If(primary3 gte primary1) {
             primary3 += 1
         }
         If(primary3 gte primary2) {
             primary3 += 1
         }
-        If (primary3 lt primary2) {
+        If(primary3 lt primary2) {
             primary3.swap(primary2)
         }
-        If (primary2 lt primary1) {
+        If(primary2 lt primary1) {
             primary2.swap(primary1)
         }
-        primary4.set(Random.next(primaryCount-3))
+        primary4.set { Command.random().value(0..primaryCount - 3) }
         If(primary4 gte primary1) {
             primary4 += 1
         }
@@ -210,28 +216,28 @@ fun main() {
         If(primary4 gte primary3) {
             primary4 += 1
         }
-        secondary1.set(Random.next(secondaryCount))
-        secondary2.set(Random.next(secondaryCount-1))
+        secondary1.set { Command.random().value(0..secondaryCount) }
+        secondary2.set { Command.random().value(0..secondaryCount - 1) }
         If(secondary2 gte secondary1) {
             secondary2 += 1
         }
-        If (secondary2 lt secondary1) {
+        If(secondary2 lt secondary1) {
             secondary2.swap(secondary1)
         }
-        secondary3.set(Random.next(secondaryCount-2))
+        secondary3.set { Command.random().value(0..secondaryCount - 2) }
         If(secondary3 gte secondary1) {
             secondary3 += 1
         }
         If(secondary3 gte secondary2) {
             secondary3 += 1
         }
-        If (secondary3 lt secondary2) {
+        If(secondary3 lt secondary2) {
             secondary3.swap(secondary2)
         }
-        If (secondary2 lt secondary1) {
+        If(secondary2 lt secondary1) {
             secondary2.swap(secondary1)
         }
-        secondary4.set(Random.next(secondaryCount-3))
+        secondary4.set { Command.random().value(0..secondaryCount - 3) }
         If(secondary4 gte secondary1) {
             secondary4 += 1
         }
@@ -241,7 +247,7 @@ fun main() {
         If(secondary4 gte secondary3) {
             secondary4 += 1
         }
-        
+
         primary1 += 1
         primary2 += 1
         primary3 += 1
@@ -279,14 +285,10 @@ fun main() {
     //G:/Games/Minecraft Servers/Gun Server/world/datapacks
     //C:/Users/Jared Healy/AppData/Roaming/.minecraft/saves/Datapack Testing/datapacks
     //G:/Games/Minecraft Servers/1.18 test/world/datapacks
-    //s
+    //G:/Games/Minecraft Servers/build server/world/datapacks
 
     dp.write(
         "G:/Games/Minecraft Servers/Gun Server/world/datapacks",
-        "Datapack Handling guns etc", delete = true
-    )
-    dp.write(
-        "G:/Games/Minecraft Servers/build server/world/datapacks",
         "Datapack Handling guns etc", delete = true
     )
 }
@@ -305,7 +307,7 @@ fun coasSetup() {
     AbstractCoasWeapon.setCoasFunction(coasManager)
     coasManager += {
         AbstractCoasWeapon.currentId.set(
-            self.data["SelectedItem.tag.jh1236.weapon"].get()
+            self.data["SelectedItem.components.minecraft:custom_data.weapon"].get()
         )
     }
 }
@@ -326,11 +328,17 @@ fun mcMain() {
     //TODO: convert properly
     Command.raw("execute as @a[tag = !$playingTag, predicate = jh1236:sneaking] at @s if block ~ ~-.25 ~ waxed_oxidized_copper positioned ~ 0 ~ if entity @s[dy = 100] run tp @s ~ ~-2 ~")
     Command.raw("execute as @a[tag = !$playingTag, predicate = jh1236:sneaking] at @s if block ~ ~-.25 ~ waxed_oxidized_copper positioned ~ 0 ~ unless entity @s[dy = 100] run tp @s ~ ~4 ~")
-    Command.execute().asat('e'["type = item", "tag = !safe"]).If(self.data["Item.tag.jh1236.weapon"])
+    Command.execute().asat('e'["type = item", "tag = !safe"])
+        .If(self.data["Item.components.minecraft:custom_data.weapon"])
         .If('a'[""].hasTag(playingTag)).run {
             Command.tag(self).add("safe")
             self.data["{}"] = "{PickupDelay:0s}"
         }
     Command.kill('e'["type = item, tag =! safe"])
+    Command.execute().As('a'["tag = jh.changelog"]).anchored(Anchor.EYES).at(self)
+        .unless('e'["distance=..0.01", "tag = changelog"]).run {
+            Command.tag(self).remove("jh.changelog")
+            respawnFunc()
+        }
 
 }

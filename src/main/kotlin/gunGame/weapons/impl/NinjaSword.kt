@@ -22,6 +22,7 @@ import gunGame.weapons.LootTableGenerator
 import gunGame.weapons.shootTag
 import internal.commands.impl.execute.OnTarget
 import lib.random.Random
+import structure.Datapack
 import structure.Fluorite
 import structure.McFunction
 import utils.Vec2
@@ -46,15 +47,17 @@ fun loadNinjaSword() {
                 """{"text" : "Damage: 1000", "color": "gray", "italic" : false}""",
                 """{"text" : "Teleports the player around its target on hit", "color": "gray", "italic" : false}"""
             )
-            val nbt = """{HideFlags:63, Unbreakable: 1b, jh1236:{weapon:$myId} }"""
-            lootTable = LootTableGenerator.genLootTable(basePath, Items.IRON_SWORD, name, lore, nbt)
+            val nbt = """{weapon:$myId}"""
+            lootTable = LootTableGenerator.genLootTable(basePath, Items.IRON_SWORD, name, lore, nbt, customModelData)
             setupInternal()
         }
     }
 
     val tryTp = McFunction("${ninjaSword.basePath}/try_tp") {
         traceScore[self] = 6
-        ScoreTree(Random.next(6), 0..5) {
+        val random = Fluorite.reuseFakeScore("random")
+        random.set { Command.random().value(0..6) }
+        ScoreTree(random, 0..5) {
             Command.execute().anchored(Anchor.FEET).facing(
                 'a'["sort = nearest", "limit=1"].hasTag(stabbed).hasTag(playingTag), Anchor.FEET
             ).positioned('a'["sort = nearest", "limit=1"].hasTag(stabbed).hasTag(playingTag)).facing(loc(0, 0, -1))
@@ -149,8 +152,8 @@ fun stoneSword() {
             val lore = arrayListOf(
                 """{"text" : "Damage: 600", "color": "gray", "italic" : false}""",
             )
-            val nbt = """{HideFlags:63, Unbreakable: 1b, jh1236:{weapon:$myId} }"""
-            lootTable = LootTableGenerator.genLootTable(basePath, Items.STONE_SWORD, name, lore, nbt)
+            val nbt = """{weapon:$myId}"""
+            lootTable = LootTableGenerator.genLootTable(basePath, Items.STONE_SWORD, name, lore, nbt, customModelData)
             setupInternal()
         }
 

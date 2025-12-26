@@ -71,23 +71,19 @@ abstract class AbstractCoasWeapon(
             lore.add("{\"text\":\"Reload Time: $cooldownStr\", \"color\": \"gray\", \"italic\" : false}")
         }
         lore.addAll(extraLines)
-        val sb = StringBuilder("{jh1236:{ready:1b, weapon:$myId, cooldown: {value: 0, max : 0}, ")
+        val sb = StringBuilder("""{ready:1b, weapon:$myId, cooldown: {value: 0, max : 0}, """)
         if (clipsize > 1) {
-            sb.append("ammo: {value: $clipsize, max:$clipsize},")
-        }
-        sb.append("}, ")
-        if (customModelData > 0) {
-            sb.append("CustomModelData:${customModelData}, ")
+            sb.append("""ammo: {value: $clipsize, max:$clipsize},""")
         }
         sb.append("}")
-        lootTable = LootTableGenerator.genLootTable(basePath, Items.CARROT_ON_A_STICK, name, lore, sb.toString())
+        lootTable = LootTableGenerator.genLootTable(basePath, Items.CARROT_ON_A_STICK, name, lore, sb.toString(), customModelData)
         setupInternal()
     }
 
     private fun shoot() {
         Log.debug("shot weapon with id $myId!!")
-        If(!self["nbt = {SelectedItem:{tag:{jh1236:{ready:0b}}}}"]) {
-            cdBeforeShot.set(self.data["SelectedItem.tag.jh1236.cooldown.value"])
+        If(!self["nbt = {SelectedItem:{components:{custom_data:{ready:0b}}}}"]) {
+            cdBeforeShot.set(self.data["SelectedItem.components.custom_data.cooldown.value"])
             if (clipsize != 1) {
                 applyCoolDown(decrementClip((cooldown * 20).roundToInt(), (reload * 20).roundToInt()))
             } else if (cooldown > 0 || (cooldown * 20).roundToInt() == Score.LOWER) {
@@ -98,8 +94,4 @@ abstract class AbstractCoasWeapon(
     }
 
     abstract fun fire()
-
-
-
-
 }

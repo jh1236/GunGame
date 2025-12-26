@@ -272,12 +272,14 @@ open class ProjectileWeapon(
                 health[self] = 0
             }
             If(health[self] lte 0) {
+                onWallHit?.let { this@ProjectileWeapon.it('a'[""].hasTag(shootTag)) }
+            }
+            If(health[self] lte 0) {
                 if (splashRange > 0) {
                     splash()
                 }
                 If(hit eq 0) { hit.set(2) }
                 execute().on(OnTarget.PASSENGERS).run.ride(self).dismount
-                onWallHit?.let { this@ProjectileWeapon.it('a'[""].hasTag(shootTag)) }
                 tp(self, rel(0, -1024, 0))
                 kill()
             }

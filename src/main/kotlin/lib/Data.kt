@@ -24,9 +24,7 @@ private class ItemData(blank: Boolean = false) : DataProvider("block $storeBlock
 
 val storeBlock = abs(12360, -64, 0)
 fun applyNbtToHeldItem(nbt: String) {
-    Command.item().replace.block(storeBlock, "container.0").from.entity(self, "weapon.mainhand")
-    Command.data().modify.block(storeBlock, "Items[0].tag").merge.value(nbt)
-    Command.item().replace.entity(self, "weapon.mainhand").from.block(storeBlock, "container.0")
+    Command.item().modify.entity(self, "weapon.mainhand", "{\"function\": \"minecraft:set_custom_data\",\"tag\": \"$nbt\"}")
 }
 
 fun copyItemfromSlotAndRun(slot: String, func: (DataProvider) -> Unit) {

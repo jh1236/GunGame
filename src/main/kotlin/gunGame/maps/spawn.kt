@@ -6,11 +6,11 @@ import abstractions.flow.Switch
 import abstractions.score.Objective
 import commands.Command
 import enums.Effects
+import enums.Items
 import gunGame.*
 import gunGame.weapons.AbstractWeapon.Companion.allWeapons
 import lib.debug.Debug
 import lib.debug.Log
-import lib.random.Random
 import structure.Fluorite
 import structure.McFunction
 import utils.Selector
@@ -83,6 +83,10 @@ fun spawnSetup() {
                 Command.tp(self, 'e'["tag = spawn_volcano", "limit = 1", "sort = random"])
             }.case(13) {
                 Command.tp(self, 'e'["tag = spawn_city", "limit = 1", "sort = random"])
+            }.case(14) {
+                Command.tp(self, 'e'["tag = spawn_dome", "limit = 1", "sort = random"])
+            }.case(15) {
+                Command.tp(self, 'e'["tag = spawn_cathedral", "limit = 1", "sort = random"])
             }
     }
 
@@ -111,6 +115,7 @@ fun spawnSetup() {
         playingTag.add(self)
         primaryDirectory()
         secondaryDirectory()
+//        Command.item().replace.entity(self, "armor.feet").with(Items.LEATHER_BOOTS.nbt("""{Unbreakable:1b,Enchantments:[{id:"binding_curse",lvl:1},{id:"depth_strider",lvl:10}]}"""))
         mapFunc()
 
     }
@@ -123,18 +128,19 @@ fun spawnSetup() {
         two.set(secondarySelectScore)
 
         //select 1 random primary, 2 random secondaries
-        val random = Random.next(primaryCount)
+        val random = Fluorite.reuseFakeScore("random")
+        random.set { Command.random().value(0..primaryCount) }
         random += 1
         Log.info(random)
         weaponSelectScore.set(random)
         primaryDirectory()
-        random.set(Random.next(secondaryCount))
+        random.set { Command.random().value(0..secondaryCount) }
         random += 1
         Log.info(random)
         secondarySelectScore.set(random)
         secondaryDirectory()
 
-        random.set(Random.next(secondaryCount))
+        random.set { Command.random().value(0..secondaryCount) }
         random += 1
         Log.info(random)
         secondarySelectScore.set(random)
@@ -183,7 +189,7 @@ fun spawnSetup() {
         streak["*"].reset()
         kills["*"].reset()
         kdr["*"].reset()
-        Command.execute().asat('a'[""]).run {
+        Command.execute().asat('a'["tag=!build"]).run {
             respawnFunc()
             deaths[self] = 0
             streak[self] = 0

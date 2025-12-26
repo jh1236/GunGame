@@ -44,7 +44,7 @@ private fun loadStaff() {
 
     staff = object : RaycastWeapon(
         "Staff",
-        -10,
+        -50,
         103,
         1.0,
         1,
@@ -54,7 +54,7 @@ private fun loadStaff() {
         onEntityHit = { _, shooter ->
             staffTag.add(shooter)
             damageSelf(bonusDamage[shooter])
-            bonusDamage[shooter] += kotlin.math.abs(damage)
+            bonusDamage[shooter] += 25
         },
         killMessage = """'["",{"selector": "@a[tag=$shootTag]","color": "gold"},{"text": " was trash and no-aimed "},{"selector": "@s","color": "gold"}]'""",
         secondary = false,
@@ -66,7 +66,7 @@ private fun loadStaff() {
             extraLines.add("""{"text" : "Automatically aims and fires whilst it has line of sight", "color": "gray", "italic" : false}""")
             Fluorite.tickFile += {
                 Command.execute().asat(
-                    'a'["nbt = {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}", "predicate = jh1236:ready"].hasTag(
+                    'a'["nbt = {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}", "predicate = jh1236:ready"].hasTag(
                         staffTag
                     )
                 ).anchored(Anchor.EYES).facing(
@@ -77,22 +77,22 @@ private fun loadStaff() {
                     Anchor.EYES
                 ).run(fireFunc)
                 Command.execute().asat(
-                    'a'["nbt = {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}", "predicate = jh1236:ready"].hasTag(
+                    'a'["nbt = {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}", "predicate = jh1236:ready"].hasTag(
                         staffTag
                     )
                 )
                     .unless('e'["sort = nearest", "limit = 1", "distance=.5.."].hasTag(playingTag).notHasTag(invisTag))
                     .run {
                         Log.info("no one found!")
-                        bonusDamage[self] = 10
+                        bonusDamage[self] = 20
                         staffTag.remove(self)
                         applyCoolDown((reload * 20).toInt())
                     }
                 Command.execute().asat(
-                    'a'["nbt =! {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}"].hasTag(staffTag)
+                    'a'["nbt =! {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}"].hasTag(staffTag)
                 ).run {
                     staffTag.remove(self)
-                    bonusDamage[self] = 10
+                    bonusDamage[self] = 20
                     setCooldownForId(myId, (reload * 20).toInt())
                 }
             }
@@ -100,7 +100,7 @@ private fun loadStaff() {
         }
 
         override fun fire() {
-            bonusDamage[self] = 10
+            bonusDamage[self] = 20
             fireFunc.append {
                 applyCoolDown(2)
                 staffTag.remove(self)
@@ -110,7 +110,7 @@ private fun loadStaff() {
                 ).run { super.fire() }
 
                 Command.execute().unless(self.hasTag(staffTag)).run {
-                    bonusDamage[self] = 10
+                    bonusDamage[self] = 20
                     applyCoolDown((reload * 20).toInt())
                 }
             }
@@ -339,7 +339,7 @@ fun loadLandMines() {
                 gt.set { time().query.gametime }
                 gt %= 4
                 If(gt eq 0) {
-                    execute().As('a'["nbt = {SelectedItem:{tag:{jh1236:{weapon:$id}}}}"].hasTag(shootTag)).run {
+                    execute().As('a'["nbt = {SelectedItem:{components:{custom_data:{weapon:$id}}}}"].hasTag(shootTag)).run {
                         execute().at(self).run.playsound("minecraft:block.note_block.didgeridoo").master(
                             self, rel(), 1.0, 2.0
                         )
@@ -359,7 +359,7 @@ fun loadLandMines() {
         .onProjectileTick {
             If(health[self] inRange range - activationDelay..range - activationDelay + 3) {
                 Command.execute()
-                    .asat('a'["nbt = {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}"].hasTag(shootTag)).run.playsound("minecraft:block.note_block.xylophone")
+                    .asat('a'["nbt = {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}"].hasTag(shootTag)).run.playsound("minecraft:block.note_block.xylophone")
                     .master(self, rel(), 1.0, 1.8)
             }
             projectileTick(range, activationDelay, myId)
@@ -383,7 +383,7 @@ fun loadLandMines() {
             val myUUID = Fluorite.reuseFakeScore("uuid1")
             myUUID.set(self.data["UUID[0]"])
             If(uuidScore eq myUUID) {
-                Command.clear(self, Items.CARROT_ON_A_STICK.nbt("{jh1236:{weapon:${mines.myId}}}"))
+                Command.clear(self, Items.CARROT_ON_A_STICK.customData("weapon" to mines.myId))
                 val tempScore = Fluorite.reuseFakeScore("id")
                 tempScore.set(idScore[self])
                 Command.execute().asat('e'[""].hasTag(mines.projectile)).If(idScore[self] eq tempScore)
@@ -395,7 +395,7 @@ fun loadLandMines() {
         }
     }
     Fluorite.tickFile += {
-        Command.execute().asat('e'["type = item", "nbt = {Item:{tag:{jh1236:{weapon:${mines.myId}}}}}"])
+        Command.execute().asat('e'["type = item", "nbt = {Item:{components:{\"minecraft:custom_data\":{weapon:${mines.myId}}}}}"])
             .run(detonateFunc)
         Command.execute().asat('a'[""].hasTag(playingTag)).run {
             McFunction("${mines.basePath}/ammo") {

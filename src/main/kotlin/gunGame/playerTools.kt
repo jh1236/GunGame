@@ -113,12 +113,11 @@ val respawnFunc = McFunction("health/respawn") {
     playingTag.remove(self)
     Command.clear()
     smgScore[self] = 0
-    minigunScore[self] = 0
     guardianScore[self] = 0
     Command.stopsound(self)
     speedyAmmo.remove(self)
     shotCount[self] = 0
-    Command.raw("execute at @s run particle minecraft:entity_effect ~ ~ ~ 0.9960784313725490196078431372549 0.9921568627450980392156862745098 1 1 0 force @s")
+//    Command.raw("execute at @s run particle minecraft:entity_effect ~ ~ ~ 0.9960784313725490196078431372549 0.9921568627450980392156862745098 1 1 0 force @s")
     Command.effect().clear
     maxHealth[self] = 3000
     health[self].reset()
@@ -138,14 +137,13 @@ private val dieFunc = McFunction("jh1236:health/die") {
         deadTag.add(self)
         clear()
         smgScore[self] = 0
-        minigunScore[self] = 0
         guardianScore[self] = 0
         speedyAmmo.remove(self)
         shotCount[self] = 0
         effect().clear
         gamemode().spectator
         spectate('a'["limit = 1"].hasTag(shootTag))
-        raw("execute at @s run particle minecraft:entity_effect ~ ~ ~ 0.9960784313725490196078431372549 0.9921568627450980392156862745098 1 1 0 force @s")
+//        raw("execute at @s run particle minecraft:entity_effect ~ ~ ~ 0.9960784313725490196078431372549 0.9921568627450980392156862745098 1 1 0 force @s")
         kills['a'["limit = 1"].hasTag(shootTag).hasTag(playingTag)] += 1
         streak['a'["limit = 1"].hasTag(shootTag)] += 1
         streak[self] = 0
@@ -184,7 +182,8 @@ val deathEvent = EventManager(dieFunc)
 val damageSelf = McMethod("jh1236:health/damage", 1) { (damage) ->
     with(Command) {
         If(damage gt 0 and (self.notHasTag(deadTag))) {
-            damage(self[""].notHasTag(swordStabbed), 1.0, "jh1236:shot")
+//            damage(self[""].notHasTag(swordStabbed), 1.0, "jh1236:shot")
+            playsound("minecraft:entity.generic.hurt").master(self)
             Log.info("Damaged ", self, " for ", damage, " damage!!")
             If(self.hasTag(medusaTag) and (damage gt 0)) {
                 resetMedusa()

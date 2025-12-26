@@ -107,18 +107,18 @@ class RPG : ProjectileWeapon(
 
         Fluorite.tickFile += {
             Command.execute()
-                .asat('a'["nbt = {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}"].hasTag(playingTag))
+                .asat('a'["nbt = {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}"].hasTag(playingTag))
                 .run(func)
             rpgScore['a'["scores = {$rpgScore = 1..}"].hasTag(playingTag)] -= 1
             rpgScore['a'["scores = {$rpgScore = 1..}"].notHasTag(playingTag)] = 0
             Command.execute()
-                .asat('a'["nbt =! {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}"].hasTag(playingTag).hasTag(rpg)).run {
+                .asat('a'["nbt =! {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}"].hasTag(playingTag).hasTag(rpg)).run {
                     rpg.remove(self)
                     rpgScore[self] = 0
                     Command.effect().clear(self, Effects.SLOWNESS)
                     rpgFireStrength[self] = 0
                     repeat(9) {
-                        final.set(self.data["Inventory[{Slot:${it}b}].tag.jh1236.weapon"])
+                        final.set(self.data["Inventory[{Slot:${it}b}].components.minecraft:\"minecraft:custom_data\".weapon"])
                         Command.execute().If(final eq myId).run {
                             copyItemfromSlotAndRun("hotbar.$it") { itemData ->
                                 itemData["Count"] = "1"

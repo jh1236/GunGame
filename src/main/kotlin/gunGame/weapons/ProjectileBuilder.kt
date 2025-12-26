@@ -142,10 +142,6 @@ class ProjectileBuilder(val name: String, val damage: Int) {
     }
 
 
-    fun withNBT(nbt: String): ProjectileBuilder {
-        this.nbt = nbt
-        return this
-    }
 
     fun done(): ProjectileWeapon {
         val ret = ProjectileWeapon(

@@ -15,6 +15,7 @@ import gunGame.weapons.*
 import internal.commands.impl.execute.OnTarget
 import lib.Quad
 import lib.copyHeldItemToBlockAndRun
+import lib.debug.Log
 import lib.rangeScore
 import lib.raycast
 import structure.Fluorite
@@ -64,8 +65,8 @@ private fun loadCompass() {
                 """{"text" : "Damage: 0", "color": "gray", "italic" : false}""",
                 """{"text" : "Points to the nearest player", "color": "gray", "italic" : false}"""
             )
-            val nbt = """{jh1236:{weapon:$myId}}"""
-            lootTable = LootTableGenerator.genLootTable(basePath, Items.COMPASS, name, lore, nbt)
+            val nbt = """{weapon:$myId}"""
+            lootTable = LootTableGenerator.genLootTable(basePath, Items.COMPASS, name, lore, nbt, customModelData)
             setupInternal()
         }
 
@@ -88,7 +89,7 @@ private fun loadCompass() {
 
         init {
             Fluorite.tickFile += {
-                Command.execute().asat('a'["nbt = {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}"].hasTag(playingTag))
+                Command.execute().asat('a'[""].hasTag(playingTag)).If(self.inventory["weapon.mainhand"] eq Items.CARROT_ON_A_STICK.customData("weapon" to myId))
                     .run(func)
             }
         }
@@ -102,7 +103,7 @@ private fun loadTp() {
         "Tome of Teleportation",
         200,
         105,
-        1.0,
+        1.5,
         piercing = true,
         particleArray = arrayListOf(Quad(Particles.FALLING_DUST(Blocks.LIGHT_BLUE_CONCRETE), 1, 0.0, 0.0)),
         range = -40,
@@ -114,19 +115,20 @@ private fun loadTp() {
         secondary = true,
     ) {
         private fun calcDistance(): Score {
-            val distance = Fluorite.getNewFakeScore("distance")
+            val distance = Fluorite.reuseFakeScore("distance")
             distance.set { Command.time().query.gametime }
             If(self["tag = noCooldown"]) { cdBeforeShot.set(0) }
             distance -= cdBeforeShot
-            distance.minOf(100)
             distance *= 2
-            distance /= 5
+            distance /= 8
+            distance -= 5
+            distance.minOf(32)
             distance.maxOf(4)
             return distance
         }
 
         val func = McFunction("$basePath/tick") {
-            cdBeforeShot.set(self.data["SelectedItem.tag.jh1236.cooldown.value"])
+            cdBeforeShot.set(self.data["SelectedItem.components.minecraft:custom_data.cooldown.value"])
             val ammoDisplay = calcDistance()
             rangeScore.set(ammoDisplay)
             //TODO: stop being lazy
@@ -146,7 +148,7 @@ private fun loadTp() {
 
             Fluorite.tickFile += {
                 Command.execute()
-                    .asat('a'["nbt = {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}", "predicate = jh1236:ready"])
+                    .asat('a'["nbt = {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}", "predicate = jh1236:ready"])
                     .run(func)
             }
             setup()
@@ -297,11 +299,11 @@ private fun loadAura() {
         init {
             secondary = true
             Fluorite.tickFile += {
-                Command.execute().asat('a'[""]).If(self.data["{Inventory:[{tag:{jh1236:{weapon:$myId}}}]}"]).run {
+                Command.execute().asat('a'[""]).If(self.data["""{Inventory:[{components:{"minecraft:custom_data":{weapon:$myId}}}]}"""]).run {
                     Command.execute().As('a'["distance = 0.1.."].hasTag(playingTag)).run { smoke(.7) }
                 }
                 Command.execute()
-                    .asat('e'["type = item"].notHasTag(smokeTag)["nbt = {Item:{tag:{jh1236:{weapon:$myId}}}}"])
+                    .asat('e'["type = item"].notHasTag(smokeTag)["""nbt = {Item:{components:{"minecraft:custom_data":{weapon:$myId}}}}"""])
                     .run { becomeSmoke() }
 
                 Command.execute().asat('e'[""].hasTag(smokeTag)).run { smokeTick() }
@@ -311,8 +313,8 @@ private fun loadAura() {
                 """{"text" : "Creates a shroud of darkness around you", "color": "gray", "italic" : false}""",
                 """{"text" : "Press Q whilst holding to throw the cloud away", "color": "gray", "italic" : false}"""
             )
-            val nbt = """{jh1236:{weapon:$myId}}"""
-            lootTable = LootTableGenerator.genLootTable(basePath, Items.BLACK_DYE, name, lore, nbt)
+            val nbt = """{weapon:$myId}"""
+            lootTable = LootTableGenerator.genLootTable(basePath, Items.BLACK_DYE, name, lore, nbt, customModelData)
             spawnFuncTemp.append {
                 Command.execute().align("xyz").run.summon(
                     Entities.ITEM,
@@ -363,14 +365,14 @@ private fun loadMedusa() {
         init {
             Fluorite.tickFile += {
                 Command.execute().asat(
-                    'a'["predicate = jh1236:ready", "nbt = {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}"].hasTag(
+                    'a'["predicate = jh1236:ready", "nbt = {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}"].hasTag(
                         playingTag
                     )
                 ).run(medusaMatch)
 
 
                 Command.execute().asat('a'[""].hasTag(playingTag).hasTag(medusaTag)).run {
-                    If(!(self["nbt = {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}"])) {
+                    If(!(self["nbt = {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}"])) {
                         medusaTag.remove(self)
                         Command.effect().clear(self, Effects.SLOWNESS)
                     }
@@ -381,8 +383,8 @@ private fun loadMedusa() {
                 """{"text" : "Cooldown: 8.0 seconds", "color": "gray", "italic" : false}""",
                 """{"text" : "Slows the player, but reduces damage taken by 90%", "color": "gray", "italic" : false}"""
             )
-            val nbt = """{jh1236:{weapon:$myId}}"""
-            lootTable = LootTableGenerator.genLootTable(basePath, Items.GUNPOWDER, name, lore, nbt)
+            val nbt = """{weapon:$myId}"""
+            lootTable = LootTableGenerator.genLootTable(basePath, Items.GUNPOWDER, name, lore, nbt, customModelData)
             setupInternal()
         }
     }
@@ -433,17 +435,17 @@ private fun loadInvis() {
 
         init {
             Fluorite.tickFile += {
-                Command.execute().asat('a'["nbt = {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}"].hasTag(playingTag))
+                Command.execute().asat('a'["nbt = {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}"].hasTag(playingTag))
                     .run(func)
-                Command.execute().asat('a'["nbt =! {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}"].hasTag(invisTag))
+                Command.execute().asat('a'["nbt =! {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}"].hasTag(invisTag))
                     .run(endFunc)
             }
             val lore = arrayListOf(
                 """{"text" : "Damage: 0", "color": "gray", "italic" : false}""",
                 """{"text" : "Turns the player invisible, but caps their health at 1000", "color": "gray", "italic" : false}"""
             )
-            val nbt = """{jh1236:{weapon:$myId}}"""
-            lootTable = LootTableGenerator.genLootTable(basePath, Items.SUGAR, name, lore, nbt)
+            val nbt = """{weapon:$myId}"""
+            lootTable = LootTableGenerator.genLootTable(basePath, Items.SUGAR, name, lore, nbt,customModelData)
             setupInternal()
         }
 
@@ -455,7 +457,7 @@ private fun loadLeap() {
     leap =
         object : ProjectileWeapon(
             "Tome of Propulsion",
-            0, 111, 1.8,
+            0, 111, 2.0,
             range = -80,
             projectileEntity = Entities.BEE,
             particleArray = listOf(Quad(Particles.SCRAPE, 1, 0, 0)),
@@ -474,9 +476,10 @@ private fun loadLeap() {
                     health[self] = 0
                 }
             },
-            projectileSpeed = .75,
+            projectileSpeed = .5,
             secondary = true,
-            projectileNBT = ""
+            projectileNBT = "",
+            maxAllowed = 1
         ) {
             private fun calcDistance(): Score {
                 val distance = Fluorite.reuseFakeScore("distance")
@@ -493,7 +496,7 @@ private fun loadLeap() {
             }
 
             val func = McFunction("$basePath/tick") {
-                cdBeforeShot.set(self.data["SelectedItem.tag.jh1236.cooldown.value"])
+                cdBeforeShot.set(self.data["SelectedItem.components.minecraft:custom_data.cooldown.value"])
                 val ammoDisplay = calcDistance()
                 ammoDisplay /= 3
                 copyHeldItemToBlockAndRun {
@@ -505,7 +508,7 @@ private fun loadLeap() {
                 extraLines.add("""{"text":"Mounts the player on a rideable bee","color" : "gray","italic":false}""")
                 Fluorite.tickFile += {
                     Command.execute()
-                        .asat('a'["nbt = {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}", "predicate = jh1236:ready"])
+                        .asat('a'["nbt = {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}", "predicate = jh1236:ready"])
                         .run(func)
                 }
                 setup()
@@ -513,10 +516,19 @@ private fun loadLeap() {
 
             override fun fire() {
                 rangeScore.set(calcDistance())
-                Command.kill('e'[""].hasTag(projectile))
+                val temp = Fluorite.reuseFakeScore("temp")
+                temp.set(idScore[self])
+                Command.execute().asat('e'[""].hasTag(projectile)).If(idScore[self] eq temp).run {
+                    Command.kill(self)
+                }
                 super.fire()
                 Command.ride(self).dismount
-                Command.ride(self).mount('e'["limit=1"].hasTag(projectile))
+                val tempTag = PlayerTag("temp")
+                Command.execute().asat('e'[""].hasTag(projectile)).If(idScore[self] eq temp).run {
+                    tempTag.add(self)
+                }
+                Command.ride(self).mount('e'["limit=1"].hasTag(tempTag))
+                tempTag.remove('e'[""])
                 copyHeldItemToBlockAndRun {
                     it[""] = "{ Count:1 }"
                 }
@@ -543,8 +555,8 @@ private fun loadTome() {
             }.onProjectileTick {
                 Command.execute()
                     .lerpFacing('p'[""].notHasTag(shootTag).hasTag(playingTag).notHasTag(invisTag), 1, 7).run.tp(
-                    self, rel(), Vec2("~", "~")
-                )
+                        self, rel(), Vec2("~", "~")
+                    )
             }
             .withKillMessage("""'["",{"selector": "@s","color": "gold"},{"text": " got smoked by "},{"selector": "@a[tag=$shootTag]","color": "gold"}]'""")
             .asSecondary().done()

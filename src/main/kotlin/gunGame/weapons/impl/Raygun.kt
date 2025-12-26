@@ -13,7 +13,7 @@ import enums.Particles
 import gunGame.damageSelf
 import gunGame.playingTag
 import gunGame.self
-import gunGame.weapons.RaycastWeapon
+import gunGame.weapons.RaycastEnderWeapon
 import gunGame.weapons.applyCoolDown
 import gunGame.weapons.setCooldownForId
 import gunGame.weapons.shootTag
@@ -34,7 +34,7 @@ val ticksShot = Objective("ticksShot")
 private const val trueCooldown = 40
 
 
-class Raygun : RaycastWeapon(
+class Raygun : RaycastEnderWeapon(
     "Raygun",
     0,
     12,
@@ -61,14 +61,13 @@ class Raygun : RaycastWeapon(
             guardianScore['a'["scores = {$guardianScore = 1..}"].hasTag(playingTag)] -= 1
             Command.execute()
                 .asat(
-                    'a'["nbt =! {SelectedItem:{tag:{jh1236:{weapon:$myId}}}}"].hasTag(
+                    'a'["nbt =! {SelectedItem:{components:{\"minecraft:custom_data\":{weapon:$myId}}}}"].hasTag(
                         playingTag
                     ).hasTag(guardianTag)
                 )
                 .run {
                     setCooldownForId(myId, trueCooldown)
                     guardianTag.remove(self)
-                    Command.effect().clear(self, Effects.SLOWNESS)
                     guardianScore[self] = 0
                     ticksShot[self] = 0
                 }
@@ -84,7 +83,6 @@ class Raygun : RaycastWeapon(
                     guardianTag.remove(self)
                     guardianScore[self] = 0
                     ticksShot[self] = 0
-                    Command.effect().clear(self, Effects.SLOWNESS)
                 }
         }
         this.onRaycastTick = {
@@ -98,11 +96,11 @@ class Raygun : RaycastWeapon(
         this.onEntityHit = { hit, shooter ->
             If(ticksShot[shooter] gt 78 and (ticksShot[shooter] lt 120)) {
                 Command.execute().As(hit).run {
-                    damageSelf(180)
+                    damageSelf(30)
                 }
             }.Else {
                 Command.execute().As(hit).run {
-                    damageSelf(60)
+                    damageSelf(10)
                 }
             }
         }
@@ -133,7 +131,6 @@ class Raygun : RaycastWeapon(
             If(ticksShot[self] gte 200) {
                 applyCoolDown(trueCooldown)
                 guardianTag.remove(self)
-                Command.effect().clear(self, Effects.SLOWNESS)
                 guardianScore[self] = 0
                 ticksShot[self] = 0
             }.Else {
@@ -173,7 +170,6 @@ class Raygun : RaycastWeapon(
 //                Command.playsound("minecraft:entity.guardian.attack").master(self)
                 Command.playsound("minecraft:entity.allay.item_given").master('a'["tag=!noSound"], rel(), 1.0, 1.0)
             }
-            Command.effect().give(self, Effects.SLOWNESS, 1, 3, true)
         }
         fireFunc()
     }

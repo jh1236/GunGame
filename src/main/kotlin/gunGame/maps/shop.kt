@@ -21,7 +21,7 @@ val tauntToPlay = Objective("tauntToHear")
 val taunts = arrayListOf(
     "minecraft:entity.cat.ambient" to 1.0,
     "minecraft:block.honey_block.slide" to 0.0,
-    "minecraft:entity.enderman.scream" to 1.4,
+    "minecraft:entity.enderman.scream" to 1.0,
     "minecraft:entity.wither.spawn" to 2.0,
     "minecraft:item.goat_horn.sound.4" to 2.0,
     "minecraft:item.goat_horn.sound.5" to 1.0,
@@ -29,7 +29,11 @@ val taunts = arrayListOf(
     "minecraft:block.amethyst_block.resonate" to 0.6,
     "minecraft:entity.ghast.scream" to 0.6,
     "minecraft:entity.allay.death" to 0.7,
-    "minecraft:entity.witch.celebrate" to 1.0
+    "minecraft:entity.witch.celebrate" to 1.0,
+    "minecraft:block.conduit.attack.target" to 1.0,
+    "minecraft:entity.warden.sniff" to 1.6,
+    "minecraft:music_disc.otherside" to 1.0,
+    "minecraft:entity.chicken.ambient" to 1.0
 )
 
 fun addShop() {
@@ -48,11 +52,16 @@ val playTaunt = McFunction("health/taunt") {
     Sleep(Duration(20), keepContext = true)
     ScoreTree(tauntToPlay[self], 1..taunts.size) {
         val taunt = taunts[it - 1]
-        Command.playsound(taunt.first).master(self, rel(), 1.0, taunt.second)
-        if (it == 2) {
-            repeat(19) {
-                Command.playsound(taunt.first).master(self, rel(), 1.0, taunt.second)
+        Command.playsound(taunt.first).master(self, rel(), 100.0, taunt.second)
+        if (it == 1 || it == 2 ||it == 7 || it == 8 || it == 12 || it == 13 || it == 15) {
+            repeat(30) {
+                Command.playsound(taunt.first).master(self, rel(), 100.0, taunt.second)
             }
+        }
+        if (it == 14) { //we cannot let the entirety of otherside play...
+
+        Sleep(Duration.seconds(5))
+        Command.stopsound(self)
         }
     }
 }

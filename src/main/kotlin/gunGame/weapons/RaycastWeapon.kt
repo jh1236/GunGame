@@ -8,6 +8,7 @@ import abstractions.score.Score
 import commands.Command
 import enums.Blocks
 import enums.IParticle
+import enums.Particles
 import gunGame.*
 import lib.Quad
 import lib.rangeScore
@@ -117,7 +118,7 @@ open class RaycastWeapon(
                     .player('a'[""], rel(), 2)
             }
             particleArray.forEach { (particle, count, radius, speed) ->
-                If(rangeScore.rem(2) eq 0) {
+                If(rangeScore.rem(3) eq 0) {
                     Command.particle(particle, rel(), radius, radius, radius, speed, count).force(
                         if (showShooterParticle) 'a'[""] else 'a'[""].notHasTag(
                             shootTag
@@ -165,7 +166,15 @@ open class RaycastWeapon(
                 }
             }
         }, range, onWallHit = {
-            Command.raw("particle dust_color_transition 0.361 0.361 0.361 1 0.871 0.871 0.871 ~ ~ ~ 0 0 0 0 5 normal @a")
+            Command.particle(
+                Particles.DUST_COLOR_TRANSITION(0.361, 0.361, 0.361, 1, 0.871, 0.871, 0.871),
+                rel(),
+                0,
+                0,
+                0,
+                0,
+                5
+            ).normal('a'[""])
             onWallHit?.let { it(self) }
             if (splashRange > 0) {
                 splash()
